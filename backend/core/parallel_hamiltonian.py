@@ -189,7 +189,7 @@ def reassemble_field(
     """
     Reassemble the full Hamiltonian field from parallel chunk updates.
     
-    Only writes interior regions (excludes ghost cells).
+    Only writes interior regions (excludes ghost cells) using the interior_mask.
     
     Args:
         H_current: Current field state (to preserve boundary conditions)
@@ -202,25 +202,12 @@ def reassemble_field(
     H_new = H_current.copy()
     
     for chunk, update in zip(chunks, updated_chunks):
-        # Only write the true interior (mask excludes ghost cells)
-        interior_data = update[chunk.interior_mask]
+        # Extract the chunk's full region from global coordinates
+        chunk_slice = chunk.slice_2d
         
-        # Calculate interior-only indices
-        row_start = chunk.slice_2d[0].start
-        row_end = chunk.slice_2d[0].stop
-        col_start = chunk.slice_2d[1].start
-        col_end = chunk.slice_2d[1].stop
-        
-        # Adjust for halos
-        if chunk.idx > 0:  # Has top halo
-            row_start += 1
-        if chunk.halo_sources and chunk.halo_sources[-1][1] == 'bottom':  # Has bottom halo
-            row_end -= 1
-        
-        # Write interior slice
-        H_new[row_start:row_end, col_start:col_end] = interior_data.reshape(
-            (row_end - row_start, col_end - col_start)
-        )
+        # The interior_mask already identifies which cells to write
+        # (excludes halo ghost cells at boundaries)
+        H_new[chunk_slice][chunk.interior_mask] = update[chunk.interior_mask]
     
     return H_new
 
