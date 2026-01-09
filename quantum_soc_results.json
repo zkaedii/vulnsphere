@@ -1,0 +1,17 @@
+{
+  "network_size": 1000,
+  "algorithm": "ZKAEDI_PRIME_QUANTUM_RESISTANT",
+  "time_taken": 271.1856211000122,
+  "iterations": 2401,
+  "speedup": 20.824656393169512,
+  "vulnerabilities": 250,
+  "quantum_metrics": {
+    "quantum_noise_calls": 0,
+    "signature_verifications": 1,
+    "hash_checks": 25,
+    "classical_fallbacks": 2641,
+    "avg_quantum_overhead_ms": 0
+  },
+  "quantum_overhead_pct": 0.0,
+  "pqc_compliant": true
+}
