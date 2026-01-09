@@ -10,6 +10,9 @@ numpy==1.26.2
 scipy==1.11.4
 sympy==1.12
 
+# JIT Compilation (Ultra-Boosted Engine)
+numba>=0.58.0
+
 # Security Scanners
 python-nmap==0.7.1
 zaproxy==0.2.0
@@ -23,6 +26,10 @@ bcc==0.1.10; sys_platform == 'linux'
 # Cryptography & Homomorphic Encryption
 cryptography==41.0.7
 pycryptodome==3.19.0
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
 
 # Database
 asyncpg==0.29.0
@@ -42,6 +49,7 @@ python-socketio==5.10.0
 # Monitoring & Logging
 prometheus-client==0.19.0
 python-json-logger==2.0.7
+structlog==23.2.0
 
 # Testing
 pytest==7.4.3
@@ -52,8 +60,19 @@ pytest-asyncio==0.21.1
 mkdocs==1.5.3
 mkdocs-material==9.5.3
 
+# Code Quality
+black==23.12.0
+isort==5.13.0
+mypy==1.7.1
+
 # Utils
 python-dotenv==1.0.0
 click==8.1.7
 rich==13.7.0
 pyyaml==6.0.1
+
+# Type Extensions
+typing-extensions>=4.8.0
+
+# MPI (optional - install separately if needed)
+# mpi4py>=3.1.0
