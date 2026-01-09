@@ -16,7 +16,9 @@ zaproxy==0.2.0
 requests==2.31.0
 
 # eBPF Integration (Linux only)
-bcc==0.28.0; sys_platform == 'linux'
+# Note: bcc 0.28.0 not available on PyPI, using latest available version
+# For production, install bcc via system package manager: apt-get install bpfcc-tools
+bcc==0.1.10; sys_platform == 'linux'
 
 # Cryptography & Homomorphic Encryption
 cryptography==41.0.7

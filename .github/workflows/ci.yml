@@ -18,6 +18,11 @@ jobs:
       with:
         python-version: '3.11'
     
+    - name: Install system dependencies for eBPF
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bpfcc-tools python3-bpfcc || echo "eBPF tools installation skipped (not critical for CI)"
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
