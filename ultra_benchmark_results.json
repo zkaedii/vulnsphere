@@ -1,0 +1,26 @@
+{
+  "network_size": 1000,
+  "boosted": {
+    "time": 31.538529499986907,
+    "iterations": 2001,
+    "speedup": 24.987506246876563,
+    "vulnerabilities": 250,
+    "converged": true
+  },
+  "ultra": {
+    "time": 34.9297231999808,
+    "iterations": 1601,
+    "speedup": 31.23048094940662,
+    "vulnerabilities": 250,
+    "converged": true,
+    "ultra_metrics": {
+      "jit_compilation_time_ms": 4858.050799986813,
+      "avg_iteration_time_us": 2964.8540912626218,
+      "numba_enabled": true,
+      "mixed_precision": true,
+      "memory_saved_mb": 6.107330322265625
+    }
+  },
+  "relative_speedup": 0.9029138112381103,
+  "effective_total_speedup": 22.561564498703408
+}
