@@ -1,0 +1,17 @@
+{
+  "network_size": 1000,
+  "time_taken": 35.58826279640198,
+  "iterations": 1701,
+  "converged": true,
+  "vulnerabilities": 250,
+  "performance_metrics": {
+    "iterations_saved": 48300,
+    "chaos_boosts_triggered": 0,
+    "early_stops": 1,
+    "avg_eta": 0.4460367658917506,
+    "max_energy_peak": 0.33274648459605427,
+    "total_iterations": 1701,
+    "speedup_factor": 29.394473838918284
+  },
+  "algorithm": "ZKAEDI_PRIME_BOOSTED"
+}
