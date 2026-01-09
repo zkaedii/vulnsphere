@@ -1,0 +1,57 @@
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+websockets==12.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Fractal Calculus & Scientific Computing
+numpy==1.26.2
+scipy==1.11.4
+sympy==1.12
+
+# Security Scanners
+python-nmap==0.7.1
+zaproxy==0.2.0
+requests==2.31.0
+
+# eBPF Integration (Linux only)
+bcc==0.28.0; sys_platform == 'linux'
+
+# Cryptography & Homomorphic Encryption
+cryptography==41.0.7
+pycryptodome==3.19.0
+
+# Database
+asyncpg==0.29.0
+redis==5.0.1
+sqlalchemy==2.0.23
+
+# Time Series
+pandas==2.1.4
+
+# Visualization Data
+plotly==5.18.0
+
+# WebSocket & Async
+aiohttp==3.9.1
+python-socketio==5.10.0
+
+# Monitoring & Logging
+prometheus-client==0.19.0
+python-json-logger==2.0.7
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-asyncio==0.21.1
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.5.3
+
+# Utils
+python-dotenv==1.0.0
+click==8.1.7
+rich==13.7.0
+pyyaml==6.0.1

@@ -1,0 +1,139 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #000;
+  color: #00ffff;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  border-bottom: 1px solid #00ffff;
+  z-index: 1000;
+}
+
+.app-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.chaos-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #ff0000;
+  color: #fff;
+  border-radius: 4px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  position: relative;
+}
+
+.vulnsphere-3d {
+  flex: 1;
+  position: relative;
+}
+
+.control-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 400px;
+  max-height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  border-left: 1px solid #00ffff;
+  padding: 1rem;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.vulns-list {
+  margin-top: 1rem;
+}
+
+.vuln-item {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #00ffff;
+  border-radius: 4px;
+  background: rgba(0, 255, 255, 0.05);
+}
+
+.vuln-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.vuln-cve {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.severity-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.severity-badge.critical {
+  background: #ff0000;
+  color: #fff;
+}
+
+.severity-badge.high {
+  background: #ff8800;
+  color: #fff;
+}
+
+.severity-badge.medium {
+  background: #ffff00;
+  color: #000;
+}
+
+.vuln-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.vuln-actions button {
+  flex: 1;
+  padding: 0.5rem;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid #00ffff;
+  color: #00ffff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.vuln-actions button:hover {
+  background: rgba(0, 255, 255, 0.2);
+}

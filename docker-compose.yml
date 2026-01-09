@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://vulnsphere:prime@postgres:5432/vulnsphere
+      - REDIS_URL=redis://redis:6379
+      - TIMESCALE_URL=postgresql://vulnsphere:prime@timescale:5432/timeseries
+    volumes:
+      - ./backend:/app/backend
+      - /sys/kernel/debug:/sys/kernel/debug:ro
+    depends_on:
+      - postgres
+      - redis
+      - timescale
+    privileged: true
+    networks:
+      - vulnsphere
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000/ws
+    volumes:
+      - ./frontend/src:/app/src
+    networks:
+      - vulnsphere
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=vulnsphere
+      - POSTGRES_PASSWORD=prime
+      - POSTGRES_DB=vulnsphere
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - vulnsphere
+
+  timescale:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      - POSTGRES_USER=vulnsphere
+      - POSTGRES_PASSWORD=prime
+      - POSTGRES_DB=timeseries
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - vulnsphere
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - vulnsphere
+
+volumes:
+  postgres_data:
+  timescale_data:
+  redis_data:
+
+networks:
+  vulnsphere:
+    driver: bridge
