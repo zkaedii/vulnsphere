@@ -75,6 +75,27 @@ A high-performance fractal calculus framework for security research and network 
 
 ## Quick Start
 
+### ⚠️ Security Configuration
+
+**CRITICAL**: Before deploying to any environment (including development), configure secure credentials:
+
+1. **Set Admin Password**: Create a `.env` file from `env.example` and set a strong `ADMIN_DEFAULT_PASSWORD`
+   ```bash
+   cp env.example .env
+   # Edit .env and set ADMIN_DEFAULT_PASSWORD to a strong password (16+ characters)
+   ```
+
+2. **Set JWT Secret**: Also set a secure `JWT_SECRET` in your `.env` file
+   ```bash
+   # Generate a secure random secret:
+   python -c "import secrets; print(secrets.token_urlsafe(32))"
+   ```
+
+3. **What happens if not configured**: 
+   - If `ADMIN_DEFAULT_PASSWORD` is not set, a random password will be generated and logged **once** on startup
+   - Save this password immediately - it cannot be recovered
+   - For production, **always** set this explicitly in environment variables
+
 ### Run Simulation (Fastest Way to See Results)
 
 ```bash
@@ -103,6 +124,13 @@ curl -sSL https://raw.githubusercontent.com/zkaedi/vulnsphere-prime/main/scripts
 ```
 
 ### Docker Deployment
+
+**⚠️ SECURITY WARNING**: Before running Docker, set secure passwords in your `.env` file:
+```bash
+cp env.example .env
+# Edit .env and set ADMIN_DEFAULT_PASSWORD and JWT_SECRET
+```
+
 ```bash
 cd vulnsphere-prime
 docker-compose up -d
