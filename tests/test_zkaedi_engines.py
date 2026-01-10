@@ -7,7 +7,6 @@ Tests cover:
 - QuantumResistantZKAEDI (Post-quantum ready engine)
 """
 import pytest
-import asyncio
 import numpy as np
 from typing import Dict
 
