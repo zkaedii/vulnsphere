@@ -19,8 +19,6 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 import logging
 
-from .storage import UserStorage, APIKeyStorage, InMemoryUserStorage, InMemoryAPIKeyStorage
-
 logger = logging.getLogger(__name__)
 
 # Configuration
@@ -72,10 +70,8 @@ class UserInDB(User):
 
 
 # In-memory user store (replace with database in production)
-# Storage interfaces allow easy transition to database-backed implementations
-# To use a database, implement UserStorage and APIKeyStorage interfaces
-# and inject them here instead of the in-memory versions
-initial_users = {
+# This is a placeholder - implement proper database storage
+fake_users_db: Dict[str, Dict[str, Any]] = {
     "admin": {
         "username": "admin",
         "email": "admin@vulnsphere.local",
@@ -86,9 +82,8 @@ initial_users = {
     }
 }
 
-# Initialize storage backends (can be swapped with database implementations)
-user_storage: UserStorage = InMemoryUserStorage(initial_users)
-api_key_storage: APIKeyStorage = InMemoryAPIKeyStorage()
+# API keys store (replace with database in production)
+api_keys_db: Dict[str, Dict[str, Any]] = {}
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -102,9 +97,9 @@ def get_password_hash(password: str) -> str:
 
 
 def get_user(username: str) -> Optional[UserInDB]:
-    """Get user from storage"""
-    user_dict = user_storage.get_user(username)
-    if user_dict:
+    """Get user from database"""
+    if username in fake_users_db:
+        user_dict = fake_users_db[username]
         return UserInDB(**user_dict)
     return None
 
@@ -148,22 +143,20 @@ def create_refresh_token(data: dict) -> str:
 def create_api_key(username: str, description: str = "") -> str:
     """Create API key for programmatic access"""
     api_key = secrets.token_urlsafe(32)
-    key_data = {
+    api_keys_db[api_key] = {
         "username": username,
         "description": description,
         "created_at": datetime.utcnow().isoformat(),
         "last_used": None
     }
-    api_key_storage.create_api_key(api_key, key_data)
     return api_key
 
 
 def verify_api_key(api_key: str) -> Optional[str]:
     """Verify API key and return associated username"""
-    key_data = api_key_storage.get_api_key(api_key)
-    if key_data:
-        api_key_storage.update_last_used(api_key, datetime.utcnow())
-        return key_data["username"]
+    if api_key in api_keys_db:
+        api_keys_db[api_key]["last_used"] = datetime.utcnow().isoformat()
+        return api_keys_db[api_key]["username"]
     return None
 
 
