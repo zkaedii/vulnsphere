@@ -4,7 +4,7 @@ Type Definitions for ZKAEDI PRIME
 Provides TypedDict definitions for all result types,
 ensuring type safety and IDE autocompletion.
 """
-from typing import TypedDict, List, Dict, Optional, Any
+from typing import TypedDict, List, Dict, Any
 from typing_extensions import NotRequired
 import numpy as np
 from numpy.typing import NDArray
