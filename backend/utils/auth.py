@@ -19,6 +19,13 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 import logging
 
+from .auth_storage import (
+    UserStorage,
+    APIKeyStorage,
+    InMemoryUserStorage,
+    InMemoryAPIKeyStorage,
+)
+
 logger = logging.getLogger(__name__)
 
 # Configuration
@@ -66,9 +73,9 @@ class UserInDB(User):
     hashed_password: str
 
 
-# In-memory user store (replace with database in production)
-# This is a placeholder - implement proper database storage
-fake_users_db: Dict[str, Dict[str, Any]] = {
+# Storage backends - can be swapped for database implementations
+# Initialize with default admin user
+_default_users = {
     "admin": {
         "username": "admin",
         "email": "admin@vulnsphere.local",
@@ -79,8 +86,49 @@ fake_users_db: Dict[str, Dict[str, Any]] = {
     }
 }
 
-# API keys store (replace with database in production)
-api_keys_db: Dict[str, Dict[str, Any]] = {}
+# Initialize storage backends
+# For production, replace with DatabaseUserStorage and DatabaseAPIKeyStorage
+user_storage: UserStorage = InMemoryUserStorage(initial_data=_default_users)
+api_key_storage: APIKeyStorage = InMemoryAPIKeyStorage()
+
+
+def configure_storage(
+    user_backend: Optional[UserStorage] = None,
+    api_key_backend: Optional[APIKeyStorage] = None
+) -> None:
+    """
+    Configure storage backends for authentication.
+    
+    This function allows you to swap the storage implementation at runtime,
+    making it easy to switch from in-memory storage (development) to
+    database-backed storage (production).
+    
+    Example usage for database storage:
+        from backend.utils.auth_storage import DatabaseUserStorage, DatabaseAPIKeyStorage
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        
+        engine = create_engine(settings.DATABASE_URL)
+        SessionLocal = sessionmaker(bind=engine)
+        
+        configure_storage(
+            user_backend=DatabaseUserStorage(SessionLocal),
+            api_key_backend=DatabaseAPIKeyStorage(SessionLocal)
+        )
+    
+    Args:
+        user_backend: UserStorage implementation to use
+        api_key_backend: APIKeyStorage implementation to use
+    """
+    global user_storage, api_key_storage
+    
+    if user_backend is not None:
+        user_storage = user_backend
+        logger.info(f"Configured user storage: {type(user_backend).__name__}")
+    
+    if api_key_backend is not None:
+        api_key_storage = api_key_backend
+        logger.info(f"Configured API key storage: {type(api_key_backend).__name__}")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -94,9 +142,9 @@ def get_password_hash(password: str) -> str:
 
 
 def get_user(username: str) -> Optional[UserInDB]:
-    """Get user from database"""
-    if username in fake_users_db:
-        user_dict = fake_users_db[username]
+    """Get user from storage backend"""
+    user_dict = user_storage.get_user(username)
+    if user_dict:
         return UserInDB(**user_dict)
     return None
 
@@ -140,20 +188,22 @@ def create_refresh_token(data: dict) -> str:
 def create_api_key(username: str, description: str = "") -> str:
     """Create API key for programmatic access"""
     api_key = secrets.token_urlsafe(32)
-    api_keys_db[api_key] = {
+    key_data = {
         "username": username,
         "description": description,
         "created_at": datetime.utcnow().isoformat(),
         "last_used": None
     }
+    api_key_storage.create_api_key(api_key, key_data)
     return api_key
 
 
 def verify_api_key(api_key: str) -> Optional[str]:
     """Verify API key and return associated username"""
-    if api_key in api_keys_db:
-        api_keys_db[api_key]["last_used"] = datetime.utcnow().isoformat()
-        return api_keys_db[api_key]["username"]
+    key_data = api_key_storage.get_api_key(api_key)
+    if key_data:
+        api_key_storage.update_last_used(api_key, datetime.utcnow().isoformat())
+        return key_data["username"]
     return None
 
 
