@@ -6,7 +6,6 @@ Uses scipy.sparse for O(n) memory instead of O(n²) for adjacency matrices.
 Provides 10-20× memory reduction for sparse network topologies.
 """
 import numpy as np
-from scipy import sparse
 from scipy.sparse import csr_matrix, lil_matrix, diags
 from scipy.sparse.linalg import eigsh
 import time
