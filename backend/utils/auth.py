@@ -22,7 +22,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Configuration
-SECRET_KEY = os.getenv("JWT_SECRET", secrets.token_urlsafe(32))
+SECRET_KEY = os.getenv("JWT_SECRET")
+if not SECRET_KEY:
+    logger.error("JWT_SECRET environment variable is not set. JWT authentication cannot function without a stable secret key.")
+    raise RuntimeError("JWT_SECRET environment variable must be set for JWT authentication.")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
