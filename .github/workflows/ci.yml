@@ -11,37 +11,30 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
-    
+    - uses: actions/checkout@v4
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
-    - name: Install system dependencies for eBPF
+        cache: 'pip'
+
+    - name: Install system dependencies for eBPF (non-critical)
       run: |
         sudo apt-get update
-        sudo apt-get install -y bpfcc-tools python3-bpfcc || echo "eBPF tools installation skipped (not critical for CI)"
-    
-    - name: Install system dependencies for eBPF (optional)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y bpfcc-tools python3-bpfcc || echo "eBPF tools installation skipped (not critical for CI)"
-    
-    - name: Install dependencies
+        sudo apt-get install -y bpfcc-tools python3-bpfcc || echo "non-critical, continuing"
+
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        # Install bcc separately with fallback if it fails
-        pip install bcc==0.1.10 || echo "bcc installation failed, continuing without eBPF support"
-        # Install remaining dependencies
-        pip install -r requirements.txt || pip install -r requirements.txt --ignore-installed bcc
-        pip install pytest pytest-cov pytest-asyncio
-    
-    - name: Run tests
+        pip install bcc==0.1.10 --no-cache-dir || echo "Skipping bcc"
+        pip install -r requirements.txt || pip install --no-deps -r requirements.txt
+
+    - name: Run Tests
       run: |
         pytest tests/ -v --cov=backend --cov-report=xml
-    
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
+
+    - name: Upload Coverage
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
