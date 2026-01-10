@@ -234,19 +234,47 @@ def require_scope(required_scope: str):
 
 # Optional: Rate limiting support
 class RateLimiter:
-    """Simple in-memory rate limiter"""
+    """Simple in-memory rate limiter with automatic cleanup of old entries"""
 
-    def __init__(self, requests_per_minute: int = 60):
+    def __init__(self, requests_per_minute: int = 60, cleanup_after_minutes: int = 5):
         self.requests_per_minute = requests_per_minute
+        self.cleanup_after_minutes = cleanup_after_minutes
         self.requests: Dict[str, list] = {}
+        self.last_access: Dict[str, datetime] = {}
+        self.last_cleanup = datetime.utcnow()
+
+    def _cleanup_old_keys(self):
+        """Remove keys that haven't been accessed recently"""
+        now = datetime.utcnow()
+        cleanup_threshold = now - timedelta(minutes=self.cleanup_after_minutes)
+        
+        # Find keys to remove
+        keys_to_remove = [
+            key for key, last_time in self.last_access.items()
+            if last_time < cleanup_threshold
+        ]
+        
+        # Remove old keys
+        for key in keys_to_remove:
+            self.requests.pop(key, None)
+            self.last_access.pop(key, None)
+        
+        self.last_cleanup = now
 
     def is_allowed(self, key: str) -> bool:
         """Check if request is allowed"""
         now = datetime.utcnow()
         minute_ago = now - timedelta(minutes=1)
 
+        # Periodically cleanup old keys (every minute)
+        if now - self.last_cleanup > timedelta(minutes=1):
+            self._cleanup_old_keys()
+
         if key not in self.requests:
             self.requests[key] = []
+
+        # Update last access time
+        self.last_access[key] = now
 
         # Clean old requests
         self.requests[key] = [
