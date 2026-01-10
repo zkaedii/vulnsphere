@@ -11,18 +11,21 @@ Requirements:
 Usage:
     mpiexec -n 4 python -m backend.core.mpi_hamiltonian
 """
-import numpy as np
-from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass
-import time
+
 import asyncio
 import logging
+import time
+from dataclasses import dataclass
+from typing import Any, Dict, List, Tuple
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 # Try to import MPI
 try:
     from mpi4py import MPI
+
     MPI_AVAILABLE = True
 except ImportError:
     MPI_AVAILABLE = False
@@ -33,6 +36,7 @@ except ImportError:
 @dataclass
 class MPIConfig:
     """MPI configuration"""
+
     comm: Any  # MPI.Comm
     rank: int
     size: int
@@ -42,6 +46,7 @@ class MPIConfig:
 @dataclass
 class DistributedResult:
     """Result from distributed computation"""
+
     energy_field: np.ndarray
     steps: int
     time_taken: float
@@ -67,7 +72,7 @@ class MPIHamiltonianEngine:
         eta: float = 0.4,
         gamma: float = 0.3,
         beta: float = 0.1,
-        sigma: float = 0.05
+        sigma: float = 0.05,
     ):
         self.alpha = alpha
         self.eta_base = eta
@@ -91,8 +96,7 @@ class MPIHamiltonianEngine:
             logger.info(f"MPI Hamiltonian Engine: {self.size} processes")
 
     def decompose_domain(
-        self,
-        network_graph: Dict[str, List[str]]
+        self, network_graph: Dict[str, List[str]]
     ) -> Tuple[Dict[str, List[str]], List[int], List[int]]:
         """
         Decompose network into chunks for each MPI rank.
@@ -133,10 +137,7 @@ class MPIHamiltonianEngine:
         return local_graph, chunk_sizes, offsets
 
     def halo_exchange(
-        self,
-        local_H: np.ndarray,
-        chunk_sizes: List[int],
-        offsets: List[int]
+        self, local_H: np.ndarray, chunk_sizes: List[int], offsets: List[int]
     ) -> np.ndarray:
         """
         Exchange boundary values with neighboring ranks.
@@ -205,9 +206,7 @@ class MPIHamiltonianEngine:
         return current_eta
 
     async def solve_distributed(
-        self,
-        network_graph: Dict[str, List[str]],
-        max_iterations: int = 50000
+        self, network_graph: Dict[str, List[str]], max_iterations: int = 50000
     ) -> DistributedResult:
         """
         Distributed Hamiltonian evolution using MPI.
@@ -233,11 +232,7 @@ class MPIHamiltonianEngine:
 
         local_history = [local_H.copy()]
 
-        performance_metrics = {
-            'chaos_boosts': 0,
-            'iterations_run': 0,
-            'max_energy': 0
-        }
+        performance_metrics = {"chaos_boosts": 0, "iterations_run": 0, "max_energy": 0}
 
         converged = False
 
@@ -249,21 +244,31 @@ class MPIHamiltonianEngine:
             current_eta = self.chaos_boost_eta(local_H, current_eta)
 
             if current_eta > self.eta_base + 0.1:
-                performance_metrics['chaos_boosts'] += 1
+                performance_metrics["chaos_boosts"] += 1
 
             # Local Hamiltonian evolution
             sigmoid = 1.0 / (1.0 + np.exp(-self.gamma * local_H))
-            noise = np.random.normal(0, 1 + self.beta * np.abs(local_H), size=local_H.shape).astype(np.float32)
+            noise = np.random.normal(
+                0, 1 + self.beta * np.abs(local_H), size=local_H.shape
+            ).astype(np.float32)
 
             # Fractal derivative
             h = self.sigma
             t_scaled = t * h
-            delta_psi = (t_scaled + h) ** self.alpha - t_scaled ** self.alpha if t_scaled > 0 else h ** self.alpha
+            delta_psi = (
+                (t_scaled + h) ** self.alpha - t_scaled**self.alpha
+                if t_scaled > 0
+                else h**self.alpha
+            )
             if abs(delta_psi) < 1e-10:
                 delta_psi = 1e-10
 
             fractal_deriv = (local_H - local_H_prev) / delta_psi
-            local_H_new = local_H_base + current_eta * fractal_deriv * sigmoid + self.sigma * noise
+            local_H_new = (
+                local_H_base
+                + current_eta * fractal_deriv * sigmoid
+                + self.sigma * noise
+            )
 
             comp_time += time.perf_counter() - comp_start
 
@@ -278,8 +283,8 @@ class MPIHamiltonianEngine:
 
             # Track max energy
             local_max = np.max(np.abs(local_H))
-            if local_max > performance_metrics['max_energy']:
-                performance_metrics['max_energy'] = float(local_max)
+            if local_max > performance_metrics["max_energy"]:
+                performance_metrics["max_energy"] = float(local_max)
 
             # Check convergence (every 100 iterations)
             if t % 100 == 0 and t > 1500 and len(local_history) > 150:
@@ -305,7 +310,7 @@ class MPIHamiltonianEngine:
 
             await asyncio.sleep(0.0001)
 
-        performance_metrics['iterations_run'] = t + 1
+        performance_metrics["iterations_run"] = t + 1
 
         # Gather results to root
         if MPI_AVAILABLE and self.size > 1:
@@ -320,7 +325,7 @@ class MPIHamiltonianEngine:
             self.comm.Gatherv(
                 sendbuf,
                 [recvbuf, chunk_sizes, offsets, MPI.DOUBLE] if self.is_root else None,
-                root=0
+                root=0,
             )
 
             global_H = recvbuf if self.is_root else local_H.astype(np.float64)
@@ -343,13 +348,11 @@ class MPIHamiltonianEngine:
             communication_time=comm_time,
             computation_time=comp_time,
             vulnerabilities=vulnerabilities,
-            performance_metrics=performance_metrics
+            performance_metrics=performance_metrics,
         )
 
     def _extract_vulnerabilities(
-        self,
-        H: np.ndarray,
-        network_graph: Dict[str, List[str]]
+        self, H: np.ndarray, network_graph: Dict[str, List[str]]
     ) -> List[Dict]:
         """Extract vulnerabilities from global energy field"""
         threshold = np.percentile(H, 75)
@@ -358,16 +361,20 @@ class MPIHamiltonianEngine:
         nodes = list(network_graph.keys())
         for i, node_id in enumerate(nodes):
             if i < len(H) and H[i] > threshold:
-                vulns.append({
-                    'node_id': node_id,
-                    'energy': float(H[i]),
-                    'severity': 'critical' if H[i] > 8 else 'high' if H[i] > 5 else 'medium',
-                    'neighbors': network_graph.get(node_id, []),
-                    'risk_score': min(100, int(H[i] * 10)),
-                    'mpi_distributed': True
-                })
+                vulns.append(
+                    {
+                        "node_id": node_id,
+                        "energy": float(H[i]),
+                        "severity": (
+                            "critical" if H[i] > 8 else "high" if H[i] > 5 else "medium"
+                        ),
+                        "neighbors": network_graph.get(node_id, []),
+                        "risk_score": min(100, int(H[i] * 10)),
+                        "mpi_distributed": True,
+                    }
+                )
 
-        return sorted(vulns, key=lambda x: x['energy'], reverse=True)
+        return sorted(vulns, key=lambda x: x["energy"], reverse=True)
 
 
 def run_mpi_benchmark():
@@ -385,11 +392,15 @@ def run_mpi_benchmark():
         node_id = f"node_{i}"
         # Random connections (sparse)
         n_connections = np.random.randint(1, 10)
-        neighbors = [f"node_{np.random.randint(0, n_nodes)}" for _ in range(n_connections)]
+        neighbors = [
+            f"node_{np.random.randint(0, n_nodes)}" for _ in range(n_connections)
+        ]
         network[node_id] = neighbors
 
     if engine.is_root:
-        print(f"Running MPI benchmark with {n_nodes} nodes across {engine.size} processes")
+        print(
+            f"Running MPI benchmark with {n_nodes} nodes across {engine.size} processes"
+        )
 
     # Run distributed solve
     result = asyncio.run(engine.solve_distributed(network, max_iterations=5000))

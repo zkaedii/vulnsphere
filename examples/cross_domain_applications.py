@@ -11,12 +11,14 @@ across multiple domains:
 
 Each application uses the same underlying ψ-fractal derivative framework.
 """
-import numpy as np
+
 import asyncio
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
-import sys
 import os
+import sys
+from dataclasses import dataclass
+from typing import Dict, List
+
+import numpy as np
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,6 +29,7 @@ from backend.core.fractal_calculus import FractalCalculus
 @dataclass
 class SimulationResult:
     """Generic result container for cross-domain simulations"""
+
     domain: str
     time_series: np.ndarray
     final_state: np.ndarray
@@ -51,10 +54,7 @@ class PhysicsApplications:
         self.fc = FractalCalculus(alpha=alpha)
 
     def simulate_anomalous_diffusion(
-        self,
-        n_particles: int = 1000,
-        n_steps: int = 1000,
-        diffusion_coeff: float = 1.0
+        self, n_particles: int = 1000, n_steps: int = 1000, diffusion_coeff: float = 1.0
     ) -> SimulationResult:
         """
         Simulate anomalous diffusion using fractal Brownian motion.
@@ -82,7 +82,7 @@ class PhysicsApplications:
 
             # Fractional Langevin dynamics
             velocities = velocities * np.exp(-gamma * dt) + noise
-            positions[:, t] = positions[:, t-1] + velocities * dt
+            positions[:, t] = positions[:, t - 1] + velocities * dt
 
         # Calculate mean squared displacement
         msd = np.mean(positions**2, axis=0)
@@ -99,15 +99,15 @@ class PhysicsApplications:
             time_series=msd,
             final_state=positions[:, -1],
             parameters={
-                'alpha': self.alpha,
-                'n_particles': n_particles,
-                'diffusion_coeff': diffusion_coeff
+                "alpha": self.alpha,
+                "n_particles": n_particles,
+                "diffusion_coeff": diffusion_coeff,
             },
             metrics={
-                'fitted_alpha': fitted_alpha,
-                'final_msd': msd[-1],
-                'spread_std': np.std(positions[:, -1])
-            }
+                "fitted_alpha": fitted_alpha,
+                "final_msd": msd[-1],
+                "spread_std": np.std(positions[:, -1]),
+            },
         )
 
 
@@ -132,7 +132,7 @@ class FinanceApplications:
         n_days: int = 252,
         initial_vol: float = 0.2,
         mean_reversion: float = 2.0,
-        vol_of_vol: float = 0.3
+        vol_of_vol: float = 0.3,
     ) -> SimulationResult:
         """
         Simulate rough volatility model (rBergomi-style).
@@ -142,23 +142,23 @@ class FinanceApplications:
 
         where W^H is fractional Brownian motion with Hurst H < 0.5.
         """
-        dt = 1/252
+        dt = 1 / 252
         variance = np.zeros(n_days)
-        variance[0] = initial_vol ** 2
+        variance[0] = initial_vol**2
 
         # Generate fractional Brownian motion increments
         fbm_increments = self._generate_fbm_increments(n_days - 1, dt)
 
-        theta = initial_vol ** 2  # Long-term variance
+        theta = initial_vol**2  # Long-term variance
 
         for t in range(1, n_days):
             # Fractional Ornstein-Uhlenbeck dynamics
-            drift = mean_reversion * (theta - variance[t-1])
-            diffusion = vol_of_vol * np.sqrt(max(variance[t-1], 0))
+            drift = mean_reversion * (theta - variance[t - 1])
+            diffusion = vol_of_vol * np.sqrt(max(variance[t - 1], 0))
 
             variance[t] = max(
-                variance[t-1] + drift * dt + diffusion * fbm_increments[t-1],
-                1e-8  # Floor to prevent negative variance
+                variance[t - 1] + drift * dt + diffusion * fbm_increments[t - 1],
+                1e-8,  # Floor to prevent negative variance
             )
 
         volatility = np.sqrt(variance)
@@ -168,16 +168,16 @@ class FinanceApplications:
             time_series=volatility,
             final_state=variance,
             parameters={
-                'hurst': self.hurst,
-                'mean_reversion': mean_reversion,
-                'vol_of_vol': vol_of_vol
+                "hurst": self.hurst,
+                "mean_reversion": mean_reversion,
+                "vol_of_vol": vol_of_vol,
             },
             metrics={
-                'realized_vol': np.mean(volatility),
-                'vol_of_vol_realized': np.std(volatility),
-                'min_vol': np.min(volatility),
-                'max_vol': np.max(volatility)
-            }
+                "realized_vol": np.mean(volatility),
+                "vol_of_vol_realized": np.std(volatility),
+                "min_vol": np.min(volatility),
+                "max_vol": np.max(volatility),
+            },
         )
 
     def _generate_fbm_increments(self, n: int, dt: float) -> np.ndarray:
@@ -191,7 +191,7 @@ class FinanceApplications:
         for i in range(n + 1):
             for j in range(n + 1):
                 cov[i, j] = 0.5 * (
-                    t[i] ** (2*H) + t[j] ** (2*H) - abs(t[i] - t[j]) ** (2*H)
+                    t[i] ** (2 * H) + t[j] ** (2 * H) - abs(t[i] - t[j]) ** (2 * H)
                 )
 
         # Add small diagonal for numerical stability
@@ -228,7 +228,7 @@ class BiologyApplications:
         initial_infected: int = 10,
         beta: float = 0.3,
         gamma: float = 0.1,
-        n_days: int = 200
+        n_days: int = 200,
     ) -> SimulationResult:
         """
         Simulate fractional SIR epidemic model.
@@ -266,14 +266,18 @@ class BiologyApplications:
             # Weighted sum of history
             dS_frac = sum(w * sh for w, sh in zip(weights, reversed(S_history)))
             dI_frac = sum(w * ih for w, ih in zip(weights, reversed(I_history)))
-            dR_frac = sum(w * rh for w, rh in zip(weights, reversed(R_history)))
 
             # SIR dynamics with fractional derivative
-            infection_rate = beta * S[t-1] * I[t-1] / N
-            recovery_rate = gamma * I[t-1]
+            infection_rate = beta * S[t - 1] * I[t - 1] / N
+            recovery_rate = gamma * I[t - 1]
 
-            S[t] = max(0, S[t-1] - dt**self.alpha * infection_rate + 0.01 * dS_frac)
-            I[t] = max(0, I[t-1] + dt**self.alpha * (infection_rate - recovery_rate) + 0.01 * dI_frac)
+            S[t] = max(0, S[t - 1] - dt**self.alpha * infection_rate + 0.01 * dS_frac)
+            I[t] = max(
+                0,
+                I[t - 1]
+                + dt**self.alpha * (infection_rate - recovery_rate)
+                + 0.01 * dI_frac,
+            )
             R[t] = N - S[t] - I[t]
 
             S_history.append(S[t])
@@ -295,18 +299,18 @@ class BiologyApplications:
             time_series=I,  # Infected curve
             final_state=np.array([S[-1], I[-1], R[-1]]),
             parameters={
-                'alpha': self.alpha,
-                'beta': beta,
-                'gamma': gamma,
-                'population': population
+                "alpha": self.alpha,
+                "beta": beta,
+                "gamma": gamma,
+                "population": population,
             },
             metrics={
-                'peak_infected': peak_infected,
-                'peak_day': peak_day,
-                'total_infected': total_infected,
-                'attack_rate': total_infected / N,
-                'R0_effective': beta / gamma
-            }
+                "peak_infected": peak_infected,
+                "peak_day": peak_day,
+                "total_infected": total_infected,
+                "attack_rate": total_infected / N,
+                "R0_effective": beta / gamma,
+            },
         )
 
     def _grunwald_weights(self, n: int, alpha: float) -> List[float]:
@@ -330,10 +334,7 @@ class NetworkApplications:
         self.fc = FractalCalculus(alpha=alpha)
 
     def detect_communities(
-        self,
-        adjacency: np.ndarray,
-        n_communities: int = 3,
-        n_iterations: int = 1000
+        self, adjacency: np.ndarray, n_communities: int = 3, n_iterations: int = 1000
     ) -> SimulationResult:
         """
         Community detection using fractal diffusion.
@@ -366,7 +367,7 @@ class NetworkApplications:
             if t > 0:
                 h = sigma
                 t_scaled = t * h
-                delta_psi = (t_scaled + h) ** self.alpha - t_scaled ** self.alpha
+                delta_psi = (t_scaled + h) ** self.alpha - t_scaled**self.alpha
                 if abs(delta_psi) < 1e-10:
                     delta_psi = 1e-10
                 fractal_deriv = (H - H_history[-1]) / delta_psi
@@ -382,24 +383,25 @@ class NetworkApplications:
 
         # Cluster based on energy values
         from scipy.cluster.hierarchy import fcluster, linkage
+
         energy_matrix = H.reshape(-1, 1)
-        linkage_matrix = linkage(energy_matrix, method='ward')
-        communities = fcluster(linkage_matrix, n_communities, criterion='maxclust')
+        linkage_matrix = linkage(energy_matrix, method="ward")
+        communities = fcluster(linkage_matrix, n_communities, criterion="maxclust")
 
         return SimulationResult(
             domain="network",
             time_series=np.array([np.mean(h) for h in H_history]),
             final_state=H,
             parameters={
-                'alpha': self.alpha,
-                'n_communities': n_communities,
-                'n_nodes': n_nodes
+                "alpha": self.alpha,
+                "n_communities": n_communities,
+                "n_nodes": n_nodes,
             },
             metrics={
-                'iterations': t + 1,
-                'communities': communities.tolist(),
-                'modularity_proxy': np.std(H)  # Higher = better separation
-            }
+                "iterations": t + 1,
+                "communities": communities.tolist(),
+                "modularity_proxy": np.std(H),  # Higher = better separation
+            },
         )
 
 
@@ -426,7 +428,9 @@ async def main():
     print(f"   Hurst parameter: {result.parameters['hurst']}")
     print(f"   Realized volatility: {result.metrics['realized_vol']:.4f}")
     print(f"   Vol-of-vol: {result.metrics['vol_of_vol_realized']:.4f}")
-    print(f"   Vol range: [{result.metrics['min_vol']:.4f}, {result.metrics['max_vol']:.4f}]")
+    print(
+        f"   Vol range: [{result.metrics['min_vol']:.4f}, {result.metrics['max_vol']:.4f}]"
+    )
 
     # 3. Biology: Fractional SIR
     print("\n3. BIOLOGY: Fractional SIR Epidemic Model")
@@ -434,7 +438,9 @@ async def main():
     biology = BiologyApplications(alpha=0.85)
     result = biology.simulate_fractional_sir(population=10000, initial_infected=10)
     print(f"   Fractional order: {result.parameters['alpha']}")
-    print(f"   Peak infected: {result.metrics['peak_infected']:.0f} (day {result.metrics['peak_day']})")
+    print(
+        f"   Peak infected: {result.metrics['peak_infected']:.0f} (day {result.metrics['peak_day']})"
+    )
     print(f"   Total attack rate: {result.metrics['attack_rate']*100:.1f}%")
     print(f"   Effective R0: {result.metrics['R0_effective']:.2f}")
 
@@ -446,17 +452,17 @@ async def main():
     adj = np.zeros((n, n))
     # Community 1: nodes 0-9
     for i in range(10):
-        for j in range(i+1, 10):
+        for j in range(i + 1, 10):
             if np.random.rand() < 0.7:
                 adj[i, j] = adj[j, i] = 1
     # Community 2: nodes 10-19
     for i in range(10, 20):
-        for j in range(i+1, 20):
+        for j in range(i + 1, 20):
             if np.random.rand() < 0.7:
                 adj[i, j] = adj[j, i] = 1
     # Community 3: nodes 20-29
     for i in range(20, 30):
-        for j in range(i+1, 30):
+        for j in range(i + 1, 30):
             if np.random.rand() < 0.7:
                 adj[i, j] = adj[j, i] = 1
     # Inter-community edges (sparse)
