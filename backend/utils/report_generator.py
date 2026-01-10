@@ -7,12 +7,13 @@ Generates vulnerability reports in multiple formats:
 - JSON (machine-readable)
 - Markdown (documentation-friendly)
 """
-import json
-from datetime import datetime
-from typing import Dict, List, Any, Optional
-from pathlib import Path
+
 import io
+import json
 import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ class ReportGenerator:
         self,
         scan_result: Dict[str, Any],
         network_info: Dict[str, Any] = None,
-        include_charts: bool = True
+        include_charts: bool = True,
     ) -> str:
         """
         Generate HTML vulnerability report.
@@ -40,14 +41,13 @@ class ReportGenerator:
         Returns:
             HTML string
         """
-        vulnerabilities = scan_result.get('vulnerabilities', [])
-        metrics = scan_result.get('performance_metrics', {})
-        stability_log = scan_result.get('stability_log', [])
+        vulnerabilities = scan_result.get("vulnerabilities", [])
+        metrics = scan_result.get("performance_metrics", {})
 
         # Count by severity
-        severity_counts = {'critical': 0, 'high': 0, 'medium': 0, 'low': 0}
+        severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
         for vuln in vulnerabilities:
-            sev = vuln.get('severity', 'medium').lower()
+            sev = vuln.get("severity", "medium").lower()
             severity_counts[sev] = severity_counts.get(sev, 0) + 1
 
         # Generate HTML
@@ -257,8 +257,8 @@ class ReportGenerator:
 
     def _vuln_row(self, vuln: Dict) -> str:
         """Generate HTML table row for vulnerability"""
-        severity = vuln.get('severity', 'medium').lower()
-        neighbors = vuln.get('neighbors', [])
+        severity = vuln.get("severity", "medium").lower()
+        neighbors = vuln.get("neighbors", [])
         return f"""
         <tr>
             <td>{vuln.get('node_id', 'Unknown')}</td>
@@ -269,9 +269,7 @@ class ReportGenerator:
         </tr>"""
 
     def generate_json_report(
-        self,
-        scan_result: Dict[str, Any],
-        network_info: Dict[str, Any] = None
+        self, scan_result: Dict[str, Any], network_info: Dict[str, Any] = None
     ) -> str:
         """Generate JSON report"""
         report = {
@@ -279,26 +277,30 @@ class ReportGenerator:
             "generated_at": datetime.utcnow().isoformat() + "Z",
             "generator": "VulnSphere PRIME v1.0.0",
             "summary": {
-                "total_vulnerabilities": len(scan_result.get('vulnerabilities', [])),
-                "severity_breakdown": self._count_severities(scan_result.get('vulnerabilities', [])),
-                "converged": scan_result.get('converged', False),
-                "speedup_factor": scan_result.get('performance_metrics', {}).get('speedup_factor', 1)
+                "total_vulnerabilities": len(scan_result.get("vulnerabilities", [])),
+                "severity_breakdown": self._count_severities(
+                    scan_result.get("vulnerabilities", [])
+                ),
+                "converged": scan_result.get("converged", False),
+                "speedup_factor": scan_result.get("performance_metrics", {}).get(
+                    "speedup_factor", 1
+                ),
             },
-            "performance_metrics": scan_result.get('performance_metrics', {}),
-            "vulnerabilities": scan_result.get('vulnerabilities', []),
-            "stability_log": scan_result.get('stability_log', [])[-10:],  # Last 10 entries
-            "network_info": network_info
+            "performance_metrics": scan_result.get("performance_metrics", {}),
+            "vulnerabilities": scan_result.get("vulnerabilities", []),
+            "stability_log": scan_result.get("stability_log", [])[
+                -10:
+            ],  # Last 10 entries
+            "network_info": network_info,
         }
         return json.dumps(report, indent=2, default=str)
 
     def generate_markdown_report(
-        self,
-        scan_result: Dict[str, Any],
-        network_info: Dict[str, Any] = None
+        self, scan_result: Dict[str, Any], network_info: Dict[str, Any] = None
     ) -> str:
         """Generate Markdown report"""
-        vulnerabilities = scan_result.get('vulnerabilities', [])
-        metrics = scan_result.get('performance_metrics', {})
+        vulnerabilities = scan_result.get("vulnerabilities", [])
+        metrics = scan_result.get("performance_metrics", {})
         severity_counts = self._count_severities(vulnerabilities)
 
         md = f"""# VulnSphere PRIME - Vulnerability Report
@@ -348,23 +350,18 @@ class ReportGenerator:
 
     def _count_severities(self, vulnerabilities: List[Dict]) -> Dict[str, int]:
         """Count vulnerabilities by severity"""
-        counts = {'critical': 0, 'high': 0, 'medium': 0, 'low': 0}
+        counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
         for vuln in vulnerabilities:
-            sev = vuln.get('severity', 'medium').lower()
+            sev = vuln.get("severity", "medium").lower()
             counts[sev] = counts.get(sev, 0) + 1
         return counts
 
-    def save_report(
-        self,
-        content: str,
-        filepath: str,
-        format: str = "html"
-    ) -> str:
+    def save_report(self, content: str, filepath: str, format: str = "html") -> str:
         """Save report to file"""
         path = Path(filepath)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(content)
 
         logger.info(f"Report saved to {path}")
