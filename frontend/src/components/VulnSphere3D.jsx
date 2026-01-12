@@ -299,7 +299,13 @@ function EnergyField({ energyData = [], visible = true }) {
   if (!visible) return null
 
   return (
-    <mesh ref={meshRef} position={[0, -30, 0]} rotation={[-Math.PI / 2, 0, 0]} material={shaderMaterial} geometry={planeGeometry} />
+    <mesh
+      ref={meshRef}
+      position={[0, -30, 0]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      material={shaderMaterial}
+      geometry={planeGeometry}
+    />
   )
 }
 
