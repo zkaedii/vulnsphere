@@ -245,21 +245,62 @@ function NetworkEdge({ start, end, active = false, dataFlow = false }) {
 // ============================================
 function EnergyField({ energyData = [], visible = true }) {
   const meshRef = useRef()
+  const materialRef = useRef()
+
+  // Custom shader for wave animation on GPU
+  const shaderMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color('#003366') },
+        uEmissive: { value: new THREE.Color('#0066aa') },
+        uOpacity: { value: 0.3 },
+        uEmissiveIntensity: { value: 0.2 }
+      },
+      vertexShader: `
+        uniform float uTime;
+        varying vec3 vPosition;
+        varying vec3 vNormal;
+
+        void main() {
+          vPosition = position;
+          vNormal = normal;
+          
+          // Calculate wave displacement on GPU
+          float wave = sin(position.x * 0.3 + uTime) * 
+                       cos(position.y * 0.3 + uTime) * 2.0;
+          
+          vec3 newPosition = position;
+          newPosition.z = wave;
+          
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        uniform vec3 uEmissive;
+        uniform float uOpacity;
+        uniform float uEmissiveIntensity;
+        varying vec3 vPosition;
+        varying vec3 vNormal;
+
+        void main() {
+          vec3 finalColor = uColor + uEmissive * uEmissiveIntensity;
+          gl_FragColor = vec4(finalColor, uOpacity);
+        }
+      `,
+      wireframe: true,
+      transparent: true,
+      side: THREE.DoubleSide
+    })
+  }, [])
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.05
-
-      // Animate vertices for wave effect
-      const positions = meshRef.current.geometry.attributes.position
-      for (let i = 0; i < positions.count; i++) {
-        const x = positions.getX(i)
-        const z = positions.getZ(i)
-        const wave = Math.sin(x * 0.3 + state.clock.elapsedTime) *
-                     Math.cos(z * 0.3 + state.clock.elapsedTime) * 2
-        positions.setY(i, wave - 30)
-      }
-      positions.needsUpdate = true
+      meshRef.current.rotation.z = state.clock.elapsedTime * 0.05
+    }
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value = state.clock.elapsedTime
     }
   })
 
@@ -268,14 +309,7 @@ function EnergyField({ energyData = [], visible = true }) {
   return (
     <mesh ref={meshRef} position={[0, -30, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[200, 200, 50, 50]} />
-      <meshStandardMaterial
-        color="#003366"
-        wireframe
-        transparent
-        opacity={0.3}
-        emissive="#0066aa"
-        emissiveIntensity={0.2}
-      />
+      <primitive ref={materialRef} object={shaderMaterial} attach="material" />
     </mesh>
   )
 }
