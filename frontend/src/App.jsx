@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import VulnSphere3D from './components/VulnSphere3D'
 import ControlPanel from './components/ControlPanel'
 import './styles/main.css'
