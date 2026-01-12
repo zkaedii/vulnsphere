@@ -102,6 +102,18 @@ body {
   box-shadow: 0 0 10px var(--danger);
 }
 
+/* Provide non-color-dependent labels for connection status */
+.connection-status.connected::after {
+  content: "Connected";
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.connection-status.error::after {
+  content: "Error";
+  font-weight: 500;
+  color: var(--text-muted);
+}
 .chaos-trigger {
   padding: 0.5rem 1rem;
   background: linear-gradient(135deg, #ff0044, #ff4400);
