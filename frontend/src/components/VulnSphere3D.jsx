@@ -297,7 +297,7 @@ function EnergyField({ energyData = [], visible = true }) {
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.z = state.clock.elapsedTime * 0.05
+      meshRef.current.rotation.y = state.clock.elapsedTime * 0.05
     }
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime
