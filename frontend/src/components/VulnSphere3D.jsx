@@ -1,16 +1,10 @@
 import React, { useRef, useMemo, useState, useCallback, Suspense } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import {
   OrbitControls,
   Stars,
   Html,
-  Float,
-  MeshDistortMaterial,
-  Sphere,
-  Box,
-  Line,
-  Text,
-  Environment
+  Line
 } from '@react-three/drei'
 import * as THREE from 'three'
 import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing'
@@ -199,6 +193,10 @@ function NetworkEdge({ start, end, active = false, dataFlow = false }) {
     return [new THREE.Vector3(...start), new THREE.Vector3(...end)]
   }, [start, end])
 
+  // Reuse Vector3 objects for performance
+  const startVec = useMemo(() => new THREE.Vector3(...start), [start])
+  const endVec = useMemo(() => new THREE.Vector3(...end), [end])
+
   const color = active ? '#00ffff' : '#004466'
 
   // Animate data flow particles
@@ -206,8 +204,6 @@ function NetworkEdge({ start, end, active = false, dataFlow = false }) {
     if (particlesRef.current && dataFlow) {
       particlesRef.current.children.forEach((particle, i) => {
         const t = (state.clock.elapsedTime * 0.3 + i * 0.2) % 1
-        const startVec = new THREE.Vector3(...start)
-        const endVec = new THREE.Vector3(...end)
         particle.position.lerpVectors(startVec, endVec, t)
       })
     }
@@ -244,9 +240,9 @@ function NetworkEdge({ start, end, active = false, dataFlow = false }) {
 // ============================================
 function EnergyField({ energyData = [], visible = true }) {
   const meshRef = useRef()
-  const gridSize = 20
-  const cellSize = 10
 
+  // TODO: Consider using a custom shader for wave effect to improve performance
+  // by computing the animation on the GPU instead of CPU vertex manipulation
   useFrame((state) => {
     if (meshRef.current) {
       meshRef.current.rotation.y = state.clock.elapsedTime * 0.05
@@ -344,7 +340,6 @@ function ZeroTrustMoat({ center = [0, 0, 0], radius = 30, active = true }) {
 // ============================================
 function AttackProbe({ source, target, active = true }) {
   const ref = useRef()
-  const trailRef = useRef()
 
   useFrame((state) => {
     if (ref.current && active) {

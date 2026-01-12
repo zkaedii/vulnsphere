@@ -2,6 +2,9 @@
    VULNSPHERE PRIME - 3D Security Platform
    =========================================== */
 
+/* Import fonts from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -97,9 +100,24 @@ body {
   box-shadow: 0 0 10px var(--success);
 }
 
+/* Provide non-color-dependent labels for connection status */
+.connection-status.connected::after {
+  content: " Connected";
+  margin-left: 0.5rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .connection-status.error .status-dot {
   background: var(--danger);
   box-shadow: 0 0 10px var(--danger);
+}
+
+.connection-status.error::after {
+  content: " Error";
+  margin-left: 0.5rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .chaos-trigger {

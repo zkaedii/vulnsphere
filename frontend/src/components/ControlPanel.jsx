@@ -10,10 +10,6 @@ import {
   Radio,
   Zap,
   Eye,
-  EyeOff,
-  Play,
-  Pause,
-  RotateCcw,
   Settings,
   Layers,
   Target
