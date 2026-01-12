@@ -189,13 +189,11 @@ function NetworkEdge({ start, end, active = false, dataFlow = false }) {
   const lineRef = useRef()
   const particlesRef = useRef()
 
-  const points = useMemo(() => {
-    return [new THREE.Vector3(...start), new THREE.Vector3(...end)]
-  }, [start, end])
-
   // Reuse Vector3 objects for performance
   const startVec = useMemo(() => new THREE.Vector3(...start), [start])
   const endVec = useMemo(() => new THREE.Vector3(...end), [end])
+
+  const points = useMemo(() => [startVec, endVec], [startVec, endVec])
 
   const color = active ? '#00ffff' : '#004466'
 
