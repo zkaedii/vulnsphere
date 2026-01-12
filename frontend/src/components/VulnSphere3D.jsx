@@ -204,10 +204,11 @@ function NetworkEdge({ start, end, active = false, dataFlow = false }) {
   // Animate data flow particles
   useFrame((state) => {
     if (particlesRef.current && dataFlow) {
+      const startVec = points[0]
+      const endVec = points[1]
+
       particlesRef.current.children.forEach((particle, i) => {
         const t = (state.clock.elapsedTime * 0.3 + i * 0.2) % 1
-        const startVec = new THREE.Vector3(...start)
-        const endVec = new THREE.Vector3(...end)
         particle.position.lerpVectors(startVec, endVec, t)
       })
     }
