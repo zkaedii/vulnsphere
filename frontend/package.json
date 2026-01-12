@@ -16,6 +16,8 @@
     "three": "^0.159.0",
     "@react-three/fiber": "^8.15.12",
     "@react-three/drei": "^9.92.7",
+    "@react-three/postprocessing": "^2.15.11",
+    "postprocessing": "^6.34.1",
     "socket.io-client": "^4.5.4",
     "zustand": "^4.4.7",
     "recharts": "^2.10.3",
