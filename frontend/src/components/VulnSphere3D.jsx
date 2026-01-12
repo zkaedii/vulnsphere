@@ -282,23 +282,24 @@ function EnergyField({ energyData = [], visible = true }) {
     })
   }, [])
 
+  // Memoize geometry to prevent recreation on every render
+  const planeGeometry = useMemo(() => {
+    return new THREE.PlaneGeometry(200, 200, 50, 50)
+  }, [])
+
   useFrame((state) => {
     if (meshRef.current) {
       meshRef.current.rotation.y = state.clock.elapsedTime * 0.05
       
       // Update shader uniform - much more efficient than updating vertices
-      if (meshRef.current.material.uniforms) {
-        meshRef.current.material.uniforms.uTime.value = state.clock.elapsedTime
-      }
+      meshRef.current.material.uniforms.uTime.value = state.clock.elapsedTime
     }
   })
 
   if (!visible) return null
 
   return (
-    <mesh ref={meshRef} position={[0, -30, 0]} rotation={[-Math.PI / 2, 0, 0]} material={shaderMaterial}>
-      <planeGeometry args={[200, 200, 50, 50]} />
-    </mesh>
+    <mesh ref={meshRef} position={[0, -30, 0]} rotation={[-Math.PI / 2, 0, 0]} material={shaderMaterial} geometry={planeGeometry} />
   )
 }
 
