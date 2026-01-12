@@ -4,13 +4,7 @@ import {
   OrbitControls,
   Stars,
   Html,
-  Float,
-  MeshDistortMaterial,
-  Sphere,
-  Box,
-  Line,
-  Text,
-  Environment
+  Line
 } from '@react-three/drei'
 import * as THREE from 'three'
 import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing'
