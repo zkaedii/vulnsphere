@@ -256,10 +256,12 @@ function EnergyField({ energyData = [], visible = true }) {
         void main() {
           vPosition = position;
           
-          // Compute wave effect on GPU
+          // Compute wave effect on GPU (matches original CPU implementation)
+          // Original used: wave = sin(x * 0.3 + time) * cos(z * 0.3 + time) * 2
+          // and set Y to wave - 30
           float wave = sin(position.x * 0.3 + uTime) * cos(position.y * 0.3 + uTime) * 2.0;
           vec3 newPosition = position;
-          newPosition.z = wave;
+          newPosition.z = wave - 30.0;
           
           gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
         }
