@@ -244,8 +244,6 @@ function NetworkEdge({ start, end, active = false, dataFlow = false }) {
 // ============================================
 function EnergyField({ energyData = [], visible = true }) {
   const meshRef = useRef()
-  const gridSize = 20
-  const cellSize = 10
 
   useFrame((state) => {
     if (meshRef.current) {
