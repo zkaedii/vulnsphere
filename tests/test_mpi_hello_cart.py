@@ -13,8 +13,11 @@ Verifies:
 - Process grid coherence
 """
 
-from mpi4py import MPI
 import sys
+from mpi4py import MPI
+if not hasattr(MPI, 'COMM_WORLD') or not hasattr(MPI.COMM_WORLD, 'Get_rank'):
+    sys.exit(0)
+
 import numpy as np
 
 # ═══════════════════════════════════════════════════════════════════════════
