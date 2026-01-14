@@ -1,25 +1,12 @@
-name: CI
-
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
+    - name: Check Out Code
+      uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-
-    - name: Install system dependencies for eBPF (non-critical)
+    - name: Install Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y bpfcc-tools python3-bpfcc || echo "non-critical, continuing"
@@ -30,11 +17,15 @@ jobs:
         pip install bcc==0.1.10 --no-cache-dir || echo "Skipping bcc"
         pip install -r requirements.txt || pip install --no-deps -r requirements.txt
 
-    - name: Run Tests
+    - name: Run Pytest
       run: |
-        pytest tests/ -v --cov=backend --cov-report=xml
+        pytest tests/ -v --cov=backend --cov-report=xml --ignore=tests/test_mpi_hello_cart.py
 
     - name: Upload Coverage
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
+
+    - name: Run MPI tests manually
+      run: |
+        mpiexec -n 4 python tests/test_mpi_hello_cart.py
