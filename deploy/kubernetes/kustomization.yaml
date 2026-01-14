@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: vulnsphere
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - hpa.yaml
+
+commonLabels:
+  app: vulnsphere-prime
+  managed-by: kustomize
+
+images:
+  - name: vulnsphere/backend
+    newTag: latest
+  - name: vulnsphere/frontend
+    newTag: latest
+
+# Usage:
+# kubectl apply -k deploy/kubernetes/
+# or
+# kustomize build deploy/kubernetes/ | kubectl apply -f -
