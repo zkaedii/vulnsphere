@@ -33,6 +33,22 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 API_KEY_HEADER = "X-API-Key"
 
+# Admin password configuration
+# ⚠️ SECURITY WARNING: Change ADMIN_DEFAULT_PASSWORD before deployment!
+# Set ADMIN_DEFAULT_PASSWORD environment variable or a secure random password will be generated.
+ADMIN_DEFAULT_PASSWORD = os.getenv("ADMIN_DEFAULT_PASSWORD")
+if not ADMIN_DEFAULT_PASSWORD:
+    # Generate a secure random password if not provided
+    ADMIN_DEFAULT_PASSWORD = secrets.token_urlsafe(24)
+    logger.warning(
+        "=" * 80 + "\n"
+        "⚠️  SECURITY WARNING: No ADMIN_DEFAULT_PASSWORD environment variable set!\n"
+        f"⚠️  Generated random password: {ADMIN_DEFAULT_PASSWORD}\n"
+        "⚠️  Save this password immediately! It will not be shown again.\n"
+        "⚠️  Set ADMIN_DEFAULT_PASSWORD in your environment for production use.\n"
+        + "=" * 80
+    )
+
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -82,7 +98,7 @@ initial_users = {
         "full_name": "Administrator",
         "disabled": False,
         "scopes": ["read", "write", "admin"],
-        "hashed_password": pwd_context.hash("changeme")  # Change in production!
+        "hashed_password": pwd_context.hash(ADMIN_DEFAULT_PASSWORD)
     }
 }
 
