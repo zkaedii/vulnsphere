@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState, useCallback, Suspense } from 'react'
+import React, { useRef, useMemo, useState, useCallback, Suspense, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import {
   OrbitControls,
@@ -288,6 +288,13 @@ function EnergyField({ energyData = [], visible = true }) {
       side: THREE.DoubleSide
     })
   }, [])
+
+  useEffect(() => {
+    return () => {
+      // Dispose of the manually created ShaderMaterial to free GPU resources
+      shaderMaterial.dispose()
+    }
+  }, [shaderMaterial])
 
   // Custom shader material for GPU-based wave animation
   const shaderMaterial = useMemo(() => {
