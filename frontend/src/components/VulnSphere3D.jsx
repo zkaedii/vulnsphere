@@ -260,12 +260,12 @@ function EnergyField({ energyData = [], visible = true }) {
           vPosition = position;
           vNormal = normal;
           
-          // Calculate wave displacement on GPU
+          // Calculate wave displacement on GPU (match CPU: use X/Z, displace Y with -30 baseline)
           float wave = sin(position.x * 0.3 + uTime) * 
-                       cos(position.y * 0.3 + uTime) * 2.0;
+                       cos(position.z * 0.3 + uTime) * 2.0;
           
           vec3 newPosition = position;
-          newPosition.z = wave;
+          newPosition.y = wave - 30.0;
           
           gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
         }
