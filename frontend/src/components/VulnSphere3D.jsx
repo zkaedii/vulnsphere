@@ -1,16 +1,10 @@
 import React, { useRef, useMemo, useState, useCallback, Suspense } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import {
   OrbitControls,
   Stars,
   Html,
-  Float,
-  MeshDistortMaterial,
-  Sphere,
-  Box,
-  Line,
-  Text,
-  Environment
+  Line
 } from '@react-three/drei'
 import * as THREE from 'three'
 import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing'
@@ -295,12 +289,62 @@ function EnergyField({ energyData = [], visible = true }) {
     })
   }, [])
 
+  // Custom shader material for GPU-based wave animation
+  const shaderMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color('#003366') },
+        uEmissive: { value: new THREE.Color('#0066aa') },
+        uOpacity: { value: 0.3 }
+      },
+      vertexShader: `
+        uniform float uTime;
+        varying vec3 vPosition;
+        
+        void main() {
+          vPosition = position;
+          
+          // Compute wave effect on GPU (matches original CPU implementation)
+          // Original used: wave = sin(x * 0.3 + time) * cos(z * 0.3 + time) * 2
+          // and set Y to wave - 30
+          float wave = sin(position.x * 0.3 + uTime) * cos(position.y * 0.3 + uTime) * 2.0;
+          vec3 newPosition = position;
+          newPosition.z = wave - 30.0;
+          
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        uniform vec3 uEmissive;
+        uniform float uOpacity;
+        varying vec3 vPosition;
+        
+        void main() {
+          vec3 finalColor = uColor + uEmissive * 0.2;
+          gl_FragColor = vec4(finalColor, uOpacity);
+        }
+      `,
+      transparent: true,
+      wireframe: true
+    })
+  }, [])
+
+  // Memoize geometry to prevent recreation on every render
+  const planeGeometry = useMemo(() => {
+    return new THREE.PlaneGeometry(200, 200, 50, 50)
+  }, [])
+
   useFrame((state) => {
     if (meshRef.current) {
       meshRef.current.rotation.y = state.clock.elapsedTime * 0.05
     }
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime
+      
+      // Update shader uniform - much more efficient than updating vertices
+      meshRef.current.material.uniforms.uTime.value = state.clock.elapsedTime
     }
   })
 
@@ -311,6 +355,13 @@ function EnergyField({ energyData = [], visible = true }) {
       <planeGeometry args={[200, 200, 50, 50]} />
       <primitive ref={materialRef} object={shaderMaterial} attach="material" />
     </mesh>
+    <mesh
+      ref={meshRef}
+      position={[0, -30, 0]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      material={shaderMaterial}
+      geometry={planeGeometry}
+    />
   )
 }
 
